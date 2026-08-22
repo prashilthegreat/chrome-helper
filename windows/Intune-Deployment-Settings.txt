@@ -1,0 +1,32 @@
+Chrome Helper 1.1.0 — Microsoft Intune Win32 app settings
+
+App type: Windows app (Win32)
+Package: ChromeHelper.intunewin
+Name: Chrome Helper
+Description: Always-on-top Chrome profile launcher for Microsoft 365 Admin.
+Publisher: Prashil Koirala
+App version: 1.1.0
+Category: Productivity
+
+Program
+Install command: ChromeHelperSetup.exe /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+Uninstall command: "%ProgramFiles%\Chrome Helper\unins000.exe" /VERYSILENT /SUPPRESSMSGBOXES /NORESTART
+Install behavior: System
+Device restart behavior: No specific action
+
+Requirements
+Operating system architecture: 64-bit
+Minimum operating system: Windows 10 22H2
+
+Detection rule
+Rule type: File
+Path: %ProgramFiles%\Chrome Helper
+File or folder: ChromeHelper.exe
+Detection method: String (version)
+Operator: Greater than or equal to
+Value: 1.1.0.0
+Associated with a 32-bit app on 64-bit clients: No
+
+Important: This package is not Authenticode-signed. If WDAC or App Control blocks
+unsigned applications, the Intune administrator must add an allow policy or sign
+the installer and executable with a certificate trusted by managed devices.

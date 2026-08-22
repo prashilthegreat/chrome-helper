@@ -27,10 +27,21 @@ jobs:
           $portable = (Get-FileHash publish/ChromeHelper.exe -Algorithm SHA256).Hash.ToLower()
           $installer = (Get-FileHash windows/installer-output/ChromeHelperSetup.exe -Algorithm SHA256).Hash.ToLower()
           "${portable}  ChromeHelper.exe`n${installer}  ChromeHelperSetup.exe" | Set-Content SHA256SUMS.txt
+      - name: Build Intune package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force intune-source, intune-output | Out-Null
+          Copy-Item windows/installer-output/ChromeHelperSetup.exe intune-source/
+          $release = Invoke-RestMethod -Headers @{ "User-Agent" = "ChromeHelperBuild" } https://api.github.com/repos/microsoft/Microsoft-Win32-Content-Prep-Tool/releases/latest
+          $asset = $release.assets | Where-Object { $_.name -eq "IntuneWinAppUtil.exe" } | Select-Object -First 1
+          if (-not $asset) { throw "Microsoft IntuneWinAppUtil.exe release asset was not found." }
+          Invoke-WebRequest $asset.browser_download_url -OutFile IntuneWinAppUtil.exe
+          & .\IntuneWinAppUtil.exe -c intune-source -s ChromeHelperSetup.exe -o intune-output -q
+          Rename-Item intune-output/ChromeHelperSetup.intunewin ChromeHelper.intunewin
       - name: Publish stable download
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           if (-not (gh release view windows-latest 2>$null)) { gh release create windows-latest --title "Chrome Helper for Windows" --notes "Self-contained Windows launcher. Download ChromeHelper.exe and run it—no helper or Node.js required." }
-          gh release upload windows-latest publish/ChromeHelper.exe windows/installer-output/ChromeHelperSetup.exe SHA256SUMS.txt --clobber
+          gh release upload windows-latest publish/ChromeHelper.exe windows/installer-output/ChromeHelperSetup.exe ChromeHelper.intunewin windows/Intune-Deployment-Settings.txt SHA256SUMS.txt --clobber

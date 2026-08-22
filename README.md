@@ -4,6 +4,8 @@
 
 Download the recommended [Chrome Helper installer](https://github.com/prashilthegreat/chrome-helper/releases/latest/download/ChromeHelperSetup.exe), or use the portable [ChromeHelper.exe](https://github.com/prashilthegreat/chrome-helper/releases/latest/download/ChromeHelper.exe). Both are self-contained and require no separate helper or Node.js.
 
+For managed devices, download the [Microsoft Intune package](https://github.com/prashilthegreat/chrome-helper/releases/latest/download/ChromeHelper.intunewin) and follow the included [deployment settings](https://github.com/prashilthegreat/chrome-helper/releases/latest/download/Intune-Deployment-Settings.txt).
+
 ## Web app
 
 A clean full-stack starter running on

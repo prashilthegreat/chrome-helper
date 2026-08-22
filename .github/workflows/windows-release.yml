@@ -1,0 +1,25 @@
+name: Build Windows app
+on:
+  push:
+    branches: [main]
+    paths: ["windows/**", ".github/workflows/windows-release.yml"]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - name: Build self-contained app
+        run: dotnet publish windows/ChromeHelper/ChromeHelper.csproj -c Release -r win-x64 --self-contained true -o publish
+      - name: Publish stable download
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if (-not (gh release view windows-latest 2>$null)) { gh release create windows-latest --title "Chrome Helper for Windows" --notes "Self-contained Windows launcher. Download ChromeHelper.exe and run it—no helper or Node.js required." }
+          gh release upload windows-latest publish/ChromeHelper.exe --clobber

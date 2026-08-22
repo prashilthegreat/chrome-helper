@@ -1,4 +1,10 @@
-# vinext-starter
+# Chrome Helper
+
+## Windows app
+
+Download [ChromeHelper.exe](https://github.com/prashilthegreat/chrome-helper/releases/latest/download/ChromeHelper.exe). The self-contained app discovers local Chrome profiles and requires no separate helper or Node.js.
+
+## Web app
 
 A clean full-stack starter running on
 [vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and

@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { spawn } from "node:child_process";
 
 const PORT = 47321;
+const DESTINATION = "https://admin.microsoft.com/";
 const chromeRoots = {
   darwin: join(homedir(), "Library/Application Support/Google/Chrome"),
   win32: join(process.env.LOCALAPPDATA || "", "Google/Chrome/User Data"),
@@ -18,7 +19,7 @@ async function profiles() {
 }
 
 function openProfile(profile) {
-  const args = [`--profile-directory=${profile}`];
+  const args = [`--profile-directory=${profile}`, DESTINATION];
   if (platform() === "darwin") return spawn("open", ["-na", "Google Chrome", "--args", ...args], { detached: true, stdio: "ignore" }).unref();
   if (platform() === "win32") return spawn(join(process.env.PROGRAMFILES || "", "Google/Chrome/Application/chrome.exe"), args, { detached: true, stdio: "ignore" }).unref();
   spawn("google-chrome", args, { detached: true, stdio: "ignore" }).unref();

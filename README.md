@@ -2,7 +2,7 @@
 
 ## Windows app
 
-Download [ChromeHelper.exe](https://github.com/prashilthegreat/chrome-helper/releases/latest/download/ChromeHelper.exe). The self-contained app discovers local Chrome profiles and requires no separate helper or Node.js.
+Download the recommended [Chrome Helper installer](https://github.com/prashilthegreat/chrome-helper/releases/latest/download/ChromeHelperSetup.exe), or use the portable [ChromeHelper.exe](https://github.com/prashilthegreat/chrome-helper/releases/latest/download/ChromeHelper.exe). Both are self-contained and require no separate helper or Node.js.
 
 ## Web app
 

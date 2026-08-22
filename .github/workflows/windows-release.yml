@@ -41,4 +41,4 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if (-not (gh release view windows-latest 2>$null)) { gh release create windows-latest --title "Chrome Helper for Windows" --notes "Self-contained Windows launcher. Download ChromeHelper.exe and run it—no helper or Node.js required." }
-          gh release upload windows-latest publish/ChromeHelper.exe windows/installer-output/ChromeHelperSetup.exe intune-output/ChromeHelper.intunewin windows/Intune-Deployment-Settings.txt SHA256SUMS.txt --clobber
+          gh release upload windows-latest publish/ChromeHelper.exe windows/installer-output/ChromeHelperSetup.exe intune-output/ChromeHelper.intunewin windows/Intune-Deployment-Settings.txt windows/INTUNE-DEPLOYMENT-GUIDE.md SHA256SUMS.txt --clobber

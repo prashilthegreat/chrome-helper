@@ -32,10 +32,7 @@ jobs:
         run: |
           New-Item -ItemType Directory -Force intune-source, intune-output | Out-Null
           Copy-Item windows/installer-output/ChromeHelperSetup.exe intune-source/
-          $release = Invoke-RestMethod -Headers @{ "User-Agent" = "ChromeHelperBuild" } https://api.github.com/repos/microsoft/Microsoft-Win32-Content-Prep-Tool/releases/latest
-          $asset = $release.assets | Where-Object { $_.name -eq "IntuneWinAppUtil.exe" } | Select-Object -First 1
-          if (-not $asset) { throw "Microsoft IntuneWinAppUtil.exe release asset was not found." }
-          Invoke-WebRequest $asset.browser_download_url -OutFile IntuneWinAppUtil.exe
+          Invoke-WebRequest https://raw.githubusercontent.com/microsoft/Microsoft-Win32-Content-Prep-Tool/master/IntuneWinAppUtil.exe -OutFile IntuneWinAppUtil.exe
           & .\IntuneWinAppUtil.exe -c intune-source -s ChromeHelperSetup.exe -o intune-output -q
           Rename-Item intune-output/ChromeHelperSetup.intunewin ChromeHelper.intunewin
       - name: Publish stable download

@@ -1,5 +1,5 @@
 #define MyAppName "Chrome Helper"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "Prashil Koirala"
 #define MyAppExeName "ChromeHelper.exe"
 
@@ -8,6 +8,9 @@ AppId={{B52AA9D4-1F1F-4E0A-98EB-CE61497FB6CB}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
+AppPublisherURL=https://prashilkoirala.com.np/
+AppSupportURL=https://github.com/prashilthegreat/chrome-helper/issues
+AppUpdatesURL=https://github.com/prashilthegreat/chrome-helper/releases/latest
 DefaultDirName={autopf}\Chrome Helper
 DefaultGroupName=Chrome Helper
 UninstallDisplayIcon={app}\{#MyAppExeName}
@@ -20,6 +23,13 @@ OutputDir=installer-output
 OutputBaseFilename=ChromeHelperSetup
 SetupIconFile=ChromeHelper\Assets\pk-logo.ico
 PrivilegesRequired=lowest
+VersionInfoVersion={#MyAppVersion}
+VersionInfoCompany={#MyAppPublisher}
+VersionInfoDescription=Chrome profile launcher for Microsoft 365 Admin
+VersionInfoProductName={#MyAppName}
+VersionInfoProductVersion={#MyAppVersion}
+VersionInfoCopyright=Copyright (C) 2026 Prashil Koirala
+VersionInfoOriginalFileName=ChromeHelperSetup.exe
 
 [Files]
 Source: "..\publish\ChromeHelper.exe"; DestDir: "{app}"; Flags: ignoreversion

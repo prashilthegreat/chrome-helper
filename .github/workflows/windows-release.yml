@@ -21,10 +21,16 @@ jobs:
         run: |
           choco install innosetup --no-progress -y
           & "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" windows\installer.iss
+      - name: Create checksums
+        shell: pwsh
+        run: |
+          $portable = (Get-FileHash publish/ChromeHelper.exe -Algorithm SHA256).Hash.ToLower()
+          $installer = (Get-FileHash windows/installer-output/ChromeHelperSetup.exe -Algorithm SHA256).Hash.ToLower()
+          "${portable}  ChromeHelper.exe`n${installer}  ChromeHelperSetup.exe" | Set-Content SHA256SUMS.txt
       - name: Publish stable download
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           if (-not (gh release view windows-latest 2>$null)) { gh release create windows-latest --title "Chrome Helper for Windows" --notes "Self-contained Windows launcher. Download ChromeHelper.exe and run it—no helper or Node.js required." }
-          gh release upload windows-latest publish/ChromeHelper.exe windows/installer-output/ChromeHelperSetup.exe --clobber
+          gh release upload windows-latest publish/ChromeHelper.exe windows/installer-output/ChromeHelperSetup.exe SHA256SUMS.txt --clobber

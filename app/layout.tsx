@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./brand.css";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,11 +14,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Switchboard — Chrome Profile Launcher",
+  title: "Chrome Helper — Profile Launcher",
   description: "Open the right Chrome profile with just a name.",
   manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/favicon.svg",
+    icon: "/pk-logo.svg",
   },
 };
 

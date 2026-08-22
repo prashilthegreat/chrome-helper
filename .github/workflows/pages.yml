@@ -1,0 +1,48 @@
+name: Deploy Chrome Helper to Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Render the static entry page
+        run: |
+          npm start &
+          server_pid=$!
+          for attempt in {1..30}; do
+            curl -fsS http://localhost:3000/ -o dist/client/index.html && break
+            sleep 1
+          done
+          kill "$server_pid"
+          test -s dist/client/index.html
+          find dist/client -type f \( -name '*.html' -o -name '*.js' -o -name '*.webmanifest' \) -exec sed -i 's|/pk-logo.svg|/chrome-helper/pk-logo.svg|g; s|/sw.js|/chrome-helper/sw.js|g; s|/manifest.webmanifest|/chrome-helper/manifest.webmanifest|g; s|"start_url":"/"|"start_url":"/chrome-helper/"|g; s|"/_next/|"/chrome-helper/_next/|g' {} +
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist/client
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

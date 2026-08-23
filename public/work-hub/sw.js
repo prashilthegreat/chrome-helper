@@ -1,4 +1,4 @@
-const CACHE = "m365-hub-v23";
+const CACHE = "m365-hub-v24";
 const SHELL = [
   "./index.html",
   "./manifest.json",

@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Work Hub — Microsoft 365</title>
+<meta name="description" content="One-tap launcher for Microsoft 365 apps and admin tools." />
+<meta name="theme-color" content="#12161C" />
+<script>
+  const savedTheme = localStorage.getItem("theme");
+  const initialTheme = savedTheme || (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+  document.documentElement.dataset.theme = initialTheme;
+</script>
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<style>
+:root{
+  --bg:#F1F3F6; --surface:#FFFFFF; --ink:#161B22; --muted:#5B6572;
+  --line:#E1E5EA; --accent:#0EA5A0; --accent-ink:#04302E; --ring:#0EA5A055; --chrome:#161B22;
+  --radius:14px;
+}
+[data-theme="dark"]{
+  --bg:#0E131A; --surface:#171D25; --ink:#F3F6F9; --muted:#A7B1BE;
+  --line:#2B3541; --accent:#39C5BE; --accent-ink:#8DE4DF; --ring:#39C5BE44; --chrome:#090D12;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:-apple-system,ui-sans-serif,"Segoe UI",Inter,system-ui,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:48px;
+}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1040px;margin:0 auto;padding:0 24px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.ribbon{background:var(--chrome);color:#fff;padding:10px 0;font-size:13px}
+.ribbon .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.ribbon .status{display:flex;align-items:center;gap:8px;color:#C9D3DC}
+.ribbon-tools{display:flex;align-items:center;gap:14px}
+.theme-toggle{border:1px solid #3A4652;background:#232B35;color:#F5F7FA;border-radius:999px;
+  min-width:34px;height:28px;padding:0 9px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+.theme-toggle:hover{background:#303A46}
+.theme-toggle .sun{display:none}
+[data-theme="dark"] .theme-toggle .sun{display:block}
+[data-theme="dark"] .theme-toggle .moon{display:none}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--ring)}
+.dot.off{background:#E5484D;box-shadow:0 0 0 3px #E5484D33}
+header.hero{padding:22px 0 18px;display:flex;align-items:flex-start;flex-direction:column;gap:14px}
+header.hero .company-logo{display:block;width:165px;height:auto;flex:none}
+[data-theme="dark"] header.hero .company-logo{filter:brightness(0) invert(1)}
+header.hero .hero-actions{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:12px;width:min(100%,568px);margin-top:4px}
+header.hero .hero-actions .card{padding:10px 14px}
+header.hero .hero-actions .card-row{align-items:center}
+.eyebrow{text-transform:uppercase;font-size:11px;font-weight:700;letter-spacing:.14em;
+  color:var(--accent-ink);background:#E6F7F6;display:inline-block;
+  padding:5px 10px;border-radius:100px;border:1px solid #C9EEEB;}
+h1{font-size:clamp(22px,3.4vw,30px);line-height:1.05;letter-spacing:-0.02em;
+  font-weight:800;margin:0;}
+.lede{color:var(--muted);font-size:16px;max-width:56ch;line-height:1.55;margin:0}
+
+.search-fab{position:fixed;right:20px;bottom:20px;z-index:40;
+  width:48px;height:48px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--chrome);color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 10px 24px -8px rgba(15,23,32,.45);transition:transform .12s ease;}
+.search-fab:hover{transform:translateY(-2px)}
+.profile-fab{position:fixed;right:78px;bottom:20px;z-index:40;width:48px;height:48px;border-radius:50%;
+  border:1px solid transparent;cursor:pointer;background:transparent;color:#1F2937;display:none;align-items:center;justify-content:center;
+  box-shadow:0 10px 24px -8px rgba(15,23,32,.45);transition:transform .12s ease;}
+.profile-fab.available{display:flex}
+.profile-fab:hover,.profile-fab:focus-visible{transform:translateY(-2px);background:var(--surface);border-color:var(--line)}
+.profile-fab svg{width:25px;height:25px}
+.search-panel{position:fixed;right:20px;bottom:78px;z-index:40;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  box-shadow:0 16px 40px -12px rgba(15,23,32,.35);
+  padding:8px;display:none;width:min(320px, calc(100vw - 40px));}
+.search-panel.open{display:block}
+.search-panel input{width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--line);
+  font-size:14.5px;color:var(--ink);}
+.search-panel input:focus{border-color:var(--accent)}
+
+section.group{margin-top:38px}
+.group h2{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;
+  color:var(--muted);margin:0 0 14px;display:flex;align-items:center;gap:9px;}
+.group h2 .swatch{width:9px;height:9px;border-radius:3px;display:inline-block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;align-items:stretch}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(270px,1fr));align-items:start}
+.grid.hero-two{grid-template-columns:repeat(auto-fit,minmax(280px,1fr))}
+.card{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--card-accent,var(--accent));
+  border-radius:10px;padding:14px 16px;transition:transform .12s ease, box-shadow .12s ease;}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 20px -12px rgba(15,23,32,.25)}
+.card-row{display:flex;gap:12px;align-items:flex-start}
+.card .glyph{width:34px;height:34px;border-radius:8px;background:var(--card-accent,var(--accent));
+  color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;
+  font-size:13px;flex:none;}
+.card .glyph.logo{background:#fff;border:1px solid var(--line);padding:5px;}
+.card .glyph.logo img{width:100%;height:100%;object-fit:contain;}
+.card .glyph.logo.connectwise-mark{overflow:hidden;background:#fff;justify-content:flex-start}
+.card .glyph.logo.connectwise-mark img{width:82px;height:22px;max-width:none;flex:none;object-fit:initial;object-position:left center;clip-path:inset(0 58px 0 0)}
+.card .glyph.logo.emerge-mark,.card .glyph.logo.miwatj-mark{overflow:hidden;background:#fff;justify-content:flex-start}
+.card .glyph.logo.emerge-mark img{width:83px;height:18px;max-width:none;flex:none;object-fit:initial;clip-path:inset(0 63px 0 0);transform:translate(3px,1px)}
+.card .glyph.logo.miwatj-mark img{width:60px;height:22px;max-width:none;flex:none;object-fit:initial;clip-path:inset(0 37px 0 0)}
+.card .txt{min-width:0;flex:1}
+.card .name{font-weight:650;font-size:14.5px;letter-spacing:-.005em}
+.card .desc{color:var(--muted);font-size:12.5px;margin-top:2px;line-height:1.4}
+.card.hidden{display:none}
+.card.admin .card-row a{display:flex;gap:12px;align-items:flex-start;flex:1;min-width:0}
+.toggle{background:none;border:none;cursor:pointer;color:var(--muted);flex:none;
+  width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;}
+.toggle:hover{background:#F1F3F6;color:var(--ink)}
+[data-theme="dark"] .toggle:hover,[data-theme="dark"] .submenu a:hover{background:#222B35}
+.toggle svg{transition:transform .15s ease}
+.card.admin.open .toggle svg{transform:rotate(180deg)}
+.card.admin.open{min-height:231px}
+.submenu{overflow:hidden;max-height:0;transition:max-height .18s ease;}
+.card.admin.open .submenu{max-height:220px}
+
+.submenu ul{list-style:none;margin:10px 0 0;padding:10px 0 0;border-top:1px solid var(--line);
+  display:flex;flex-direction:column;gap:2px;}
+.submenu a{display:block;padding:6px 8px;border-radius:7px;font-size:13px;color:var(--ink);}
+.submenu a:hover{background:#F1F3F6;color:var(--card-accent,var(--accent))}
+.submenu a::before{content:"→ ";color:var(--muted)}
+footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line)}
+footer p{color:var(--muted);font-size:12.5px;max-width:60ch;line-height:1.6}
+@media (max-width:600px){
+  header.hero .company-logo{width:145px}
+  header.hero .hero-actions{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<div class="ribbon">
+  <div class="wrap">
+    <span id="clock">—</span>
+    <span class="ribbon-tools">
+      <span class="status"><span class="dot" id="netDot"></span><span id="netTxt">Checking connection…</span></span>
+      <button class="theme-toggle" id="themeToggle" type="button" aria-label="Switch to dark mode" title="Switch theme">
+        <svg class="moon" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 15.2A8.5 8.5 0 0 1 8.8 4 8.5 8.5 0 1 0 20 15.2Z" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+        <svg class="sun" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="4" stroke="currentColor" stroke-width="2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </span>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="hero">
+    <img class="company-logo" src="icons/logos/company.svg" alt="Emerge IT Solutions">
+    <h1>Built for Frontline and User &amp; End Point Support</h1>
+    <div class="hero-actions">
+      <a class="card" style="--card-accent:#22C55E" data-k="service desk leaders leaderboard ntcomputers" href="https://leaderboard.ntcomputers.com.au/" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo emerge-mark"><img src="icons/logos/company.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Service Desk Leaders</div></span></div></a>
+      <a class="card" style="--card-accent:#22C55E" data-k="service boards ntcomputers dashboard" href="https://service-boards.ntcomputers.com.au/" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo emerge-mark"><img src="icons/logos/company.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Service Boards</div></span></div></a>
+    </div>
+  </header>
+  <section class="group" data-accent="#EF4444">
+    <h2><span class="swatch" style="background:#EF4444"></span>Admin Centers</h2>
+    <div class="grid wide">
+
+      <div class="card admin" style="--card-accent:#EF4444" data-k="admin center tenant settings users billing">
+        <div class="card-row">
+          <a href="https://admin.microsoft.com/" target="_blank" rel="noopener">
+            <span class="glyph logo"><img src="icons/logos/admin365.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Admin Center</div><div class="desc">Tenant-wide settings</div></span></a>
+          <button class="toggle" aria-label="Expand Admin Center links" onclick="this.closest('.card').classList.toggle('open')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="submenu"><ul>
+          <li><a href="https://admin.microsoft.com/#/users" target="_blank" rel="noopener">Active users</a></li>
+          <li><a href="https://admin.microsoft.com/#/groups" target="_blank" rel="noopener">Groups</a></li>
+          <li><a href="https://admin.microsoft.com/#/billing/licenses" target="_blank" rel="noopener">Billing &amp; licenses</a></li>
+          <li><a href="https://admin.microsoft.com/#/servicehealth" target="_blank" rel="noopener">Service health</a></li>
+          <li><a href="https://admin.microsoft.com/#/support" target="_blank" rel="noopener">Support</a></li>
+        </ul></div>
+      </div>
+
+      <div class="card admin" style="--card-accent:#EF4444" data-k="entra id azure ad identity access users devices conditional">
+        <div class="card-row">
+          <a href="https://entra.microsoft.com/" target="_blank" rel="noopener">
+            <span class="glyph logo"><img src="icons/logos/entra.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Entra ID</div><div class="desc">Identity and access</div></span></a>
+          <button class="toggle" aria-label="Expand Entra ID links" onclick="this.closest('.card').classList.toggle('open')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="submenu"><ul>
+          <li><a href="https://entra.microsoft.com/#view/Microsoft_AAD_UsersAndTenants/UserManagementMenuBlade/~/AllUsers" target="_blank" rel="noopener">Users</a></li>
+          <li><a href="https://entra.microsoft.com/#view/Microsoft_AAD_IAM/GroupsManagementMenuBlade/~/AllGroups" target="_blank" rel="noopener">Groups</a></li>
+          <li><a href="https://entra.microsoft.com/#view/Microsoft_AAD_Devices/DevicesMenuBlade/~/Devices" target="_blank" rel="noopener">Devices</a></li>
+          <li><a href="https://entra.microsoft.com/#view/Microsoft_AAD_IAM/SignInsMenuBlade" target="_blank" rel="noopener">Sign-in logs</a></li>
+          <li><a href="https://entra.microsoft.com/#view/Microsoft_AAD_ConditionalAccess/ConditionalAccessBlade/~/Overview" target="_blank" rel="noopener">Conditional access</a></li>
+        </ul></div>
+      </div>
+
+      <div class="card admin" style="--card-accent:#EF4444" data-k="exchange admin center mailboxes mail flow connectors">
+        <div class="card-row">
+          <a href="https://admin.exchange.microsoft.com/" target="_blank" rel="noopener">
+            <span class="glyph logo"><img src="icons/logos/exchange.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Exchange Admin</div><div class="desc">Mailboxes and mail flow</div></span></a>
+          <button class="toggle" aria-label="Expand Exchange Admin links" onclick="this.closest('.card').classList.toggle('open')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="submenu"><ul>
+          <li><a href="https://admin.exchange.microsoft.com/#/mailboxes" target="_blank" rel="noopener">Mailboxes</a></li>
+          <li><a href="https://admin.exchange.microsoft.com/#/transportrules" target="_blank" rel="noopener">Mail flow rules</a></li>
+          <li><a href="https://admin.exchange.microsoft.com/#/groups" target="_blank" rel="noopener">Groups</a></li>
+          <li><a href="https://admin.exchange.microsoft.com/#/connectors" target="_blank" rel="noopener">Connectors</a></li>
+        </ul></div>
+      </div>
+
+      <div class="card admin" style="--card-accent:#EF4444" data-k="intune devices apps compliance configuration">
+        <div class="card-row">
+          <a href="https://intune.microsoft.com/" target="_blank" rel="noopener">
+            <span class="glyph logo"><img src="icons/logos/intune.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Intune</div><div class="desc">Devices and app policy</div></span></a>
+          <button class="toggle" aria-label="Expand Intune links" onclick="this.closest('.card').classList.toggle('open')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="submenu"><ul>
+          <li><a href="https://intune.microsoft.com/#view/Microsoft_Intune_Devices/DevicesMenu/~/overview" target="_blank" rel="noopener">Devices</a></li>
+          <li><a href="https://intune.microsoft.com/#view/Microsoft_Intune_Apps/AppsMenu/~/overview" target="_blank" rel="noopener">Apps</a></li>
+          <li><a href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/overview" target="_blank" rel="noopener">Compliance policies</a></li>
+          <li><a href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesConfigurationMenu" target="_blank" rel="noopener">Configuration profiles</a></li>
+        </ul></div>
+      </div>
+
+      <div class="card admin" style="--card-accent:#EF4444" data-k="teams admin center users voice meeting policies">
+        <div class="card-row">
+          <a href="https://admin.teams.microsoft.com/" target="_blank" rel="noopener">
+            <span class="glyph logo"><img src="icons/logos/teams.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Teams Admin</div><div class="desc">Voice, meetings and policy</div></span></a>
+          <button class="toggle" aria-label="Expand Teams Admin links" onclick="this.closest('.card').classList.toggle('open')">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <div class="submenu"><ul>
+          <li><a href="https://admin.teams.microsoft.com/users" target="_blank" rel="noopener">Users</a></li>
+          <li><a href="https://admin.teams.microsoft.com/teams/manage-teams" target="_blank" rel="noopener">Manage teams</a></li>
+          <li><a href="https://admin.teams.microsoft.com/meetings/meeting-policies" target="_blank" rel="noopener">Meeting policies</a></li>
+          <li><a href="https://admin.teams.microsoft.com/voice" target="_blank" rel="noopener">Voice</a></li>
+        </ul></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="group" data-accent="#54BEED">
+    <h2><span class="swatch" style="background:#54BEED"></span>ConnectWise</h2>
+    <div class="grid">
+      <a class="card" style="--card-accent:#54BEED" data-k="connectwise service board" href="https://aus.myconnectwise.net/v2025_1/ConnectWise.aspx?locale=en_US#XQAACACdAQAAAAAAAAA9iIoG07$U9XZqpLgsNhRsI0O_rEHSzQCIbZUnpNMnJHh0NEgqlDkEgC2t1ug2ahJ2XHQ3CIK2MK3ybBEM$DCML21QpaKJNJ0ZqlHYQX7nqVAGnNwHsLPuJY7WCOK0FfHWHSFC9fT$F3jiryGkaBmSshKddCmuPkF3ZVTLdNZr8$sar41ezKm5OwyzZULPPA75atICVcqRyTirKSK3mMfi0L0qxzm2ldil$HYJUe11ttu0rBS_hYj8WkT2??ServiceBoard" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo connectwise-mark"><img src="icons/logos/connectwise-manage.png" alt="" loading="lazy"></span><span class="txt"><div class="name">Service Board</div><div class="desc">Active tickets</div></span></div></a>
+      <a class="card" style="--card-accent:#54BEED" data-k="connectwise calendar my calendar" href="https://aus.myconnectwise.net/v2025_1/connectwise.aspx?fullscreen=false&locale=en_US#startscreen=my_calendar" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo"><img src="icons/logos/connectwise-calendar.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Calendar</div><div class="desc">My schedule</div></span></div></a>
+      <a class="card" style="--card-accent:#54BEED" data-k="connectwise service ticket search" href="https://aus.myconnectwise.net/v2025_1/connectwise.aspx?fullscreen=false&locale=en_US#XQAACACWAQAAAAAAAAA9iIoG07$U9W$XoZrQZV53xoiNqCUtfDnD7VQbwrDDyhbzpwzQukgTwLeodHyIm6RBOzK0113$uQCd1cEO2o8Q1jIVrW_J8jGIyxOCxMIXetFHKN5$c7w_IXmTlggbVRMaBxqpBw2RO2OIJnQuKoeNFaiJaLkfa4rZwa1Gc7ekkib579w$ikYSno3flrA3KkvNhq1xpgIKpwuHaS$ueKNPAs3xjf1$fFM$3OkV$mWxq6LWei2X5uf$9V0p??ServiceSearchList" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo connectwise-mark"><img src="icons/logos/connectwise-manage.png" alt="" loading="lazy"></span><span class="txt"><div class="name">Ticket Search</div><div class="desc">Find a service ticket</div></span></div></a>
+    </div>
+  </section>
+
+  <section class="group" data-accent="#0891B2">
+    <h2><span class="swatch" style="background:#0891B2"></span>Remote control and stuff</h2>
+    <div class="grid">
+      <a class="card" style="--card-accent:#0891B2" data-k="n-able ncod rmm login" href="https://ncod35.n-able.com/login" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo"><img src="icons/logos/n-able.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">N-able</div><div class="desc">RMM login</div></span></div></a>
+      <a class="card" style="--card-accent:#0891B2" data-k="acronis cloud backup login" href="https://cloud.acronis.com/login" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo"><img src="icons/logos/acronis.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Acronis</div><div class="desc">Cloud backup login</div></span></div></a>
+      <a class="card" style="--card-accent:#0891B2" data-k="hudu documentation emergeit dashboard" href="https://emergeit.huducloud.com/dashboard" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo"><img src="icons/logos/hudu.ico" alt="" loading="lazy"></span><span class="txt"><div class="name">Hudu</div><div class="desc">IT documentation dashboard</div></span></div></a>
+      <a class="card" style="--card-accent:#0891B2" data-k="mailmanager mail manager safelocation" href="https://mailmanager.safelocation.com.au" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo"><img src="icons/logos/mail-release.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Mail Manager</div><div class="desc">Client mail flow tracking</div></span></div></a>
+      <a class="card" style="--card-accent:#0891B2" data-k="miwatj vpn" href="https://vpn.miwatj.com.au:442/" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo miwatj-mark"><img src="icons/logos/miwatj.png" alt="" loading="lazy"></span><span class="txt"><div class="name">Miwatj VPN</div><div class="desc">Remote network access</div></span></div></a>
+    </div>
+  </section>
+
+  <section class="group" data-accent="#7C3AED">
+    <h2><span class="swatch" style="background:#7C3AED"></span>Teams &amp; Outlook</h2>
+    <div class="grid hero-two">
+      <a class="card" style="--card-accent:#7C3AED" data-k="teams chat calls channels video" href="https://teams.microsoft.com/" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo"><img src="icons/logos/teams.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Teams</div><div class="desc">Chat, calls and channels</div></span></div></a>
+      <a class="card" style="--card-accent:#3B82F6" data-k="outlook mail inbox" href="https://outlook.office.com/mail/" target="_blank" rel="noopener">
+        <div class="card-row"><span class="glyph logo"><img src="icons/logos/outlook.svg" alt="" loading="lazy"></span><span class="txt"><div class="name">Outlook</div><div class="desc">Mail and calendar</div></span></div></a>
+    </div>
+  </section>
+
+  <footer>
+    <p>Admin center deep links (Entra, Exchange, Intune, Teams Admin sub-menu items) can shift when Microsoft updates those portals — if one 404s, the top-level card link always works as a fallback.</p>
+  </footer>
+</div>
+
+<div class="search-panel" id="searchPanel">
+  <input id="filter" type="text" placeholder="Filter apps… (e.g. intune, hudu, vpn)" autocomplete="off" />
+</div>
+<button class="search-fab" id="searchFab" aria-label="Search apps">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2.2"/><path d="M21 21l-4.3-4.3" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+</button>
+<button class="profile-fab" id="profileFab" aria-label="Open Chrome profiles in picture-in-picture" title="Chrome profiles">
+  <svg viewBox="0 0 32 32" aria-hidden="true">
+    <circle cx="16" cy="16" r="14" fill="#4285F4"/>
+    <path d="M16 2a14 14 0 0 1 12.1 7H16a7 7 0 0 0-6.1 3.5L5.8 5.4A14 14 0 0 1 16 2Z" fill="#EA4335"/>
+    <path d="M28.1 9A14 14 0 0 1 16 30l6.1-10.5A7 7 0 0 0 23 16a7 7 0 0 0-1-3.5Z" fill="#FBBC05"/>
+    <path d="M16 30A14 14 0 0 1 5.8 5.4l6.1 10.6a7 7 0 0 0 10.2 3.5Z" fill="#34A853"/>
+    <circle cx="16" cy="16" r="5.3" fill="#fff"/><circle cx="16" cy="16" r="4.1" fill="#4285F4"/>
+  </svg>
+</button>
+
+<script>
+const themeToggle = document.getElementById("themeToggle");
+const themeMeta = document.querySelector('meta[name="theme-color"]');
+function syncThemeControl(){
+  const dark = document.documentElement.dataset.theme === "dark";
+  themeToggle.setAttribute("aria-label", dark ? "Switch to light mode" : "Switch to dark mode");
+  themeMeta.content = dark ? "#0E131A" : "#12161C";
+}
+syncThemeControl();
+themeToggle.addEventListener("click", () => {
+  const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem("theme", next);
+  syncThemeControl();
+});
+
+const profileFab = document.getElementById("profileFab");
+let profileHelper = null;
+async function connectProfileHelper(){
+  const helpers = [
+    {url:"http://127.0.0.1:47321/profiles", kind:"chrome-helper"},
+    {url:"http://127.0.0.1:8765/profiles", kind:"local-helper"}
+  ];
+  for (const helper of helpers) {
+    try {
+      const check = await fetch(helper.url, {cache:"no-store"});
+      if (!check.ok) continue;
+      const items = await check.json();
+      profileHelper = {
+        kind:helper.kind,
+        profiles:items.map(item => typeof item === "string" ? {name:item, profile:item} : item)
+      };
+      profileFab.classList.add("available");
+      return profileHelper;
+    } catch { /* Try the next installed helper. */ }
+  }
+  return null;
+}
+async function launchChromeProfile(profile){
+  if (profileHelper?.kind === "chrome-helper") {
+    return fetch("http://127.0.0.1:47321/open", {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({profile:profile.profile})
+    });
+  }
+  return fetch(`http://127.0.0.1:8765/launch/${encodeURIComponent(profile.name)}`, {cache:"no-store"});
+}
+connectProfileHelper();
+
+if (profileFab) {
+  profileFab.addEventListener("click", async () => {
+    try {
+      const helper = profileHelper || await connectProfileHelper();
+      if (!helper) throw new Error("Profile helper unavailable");
+      const profiles = helper.profiles;
+      const pipWindow = "documentPictureInPicture" in window
+        ? await documentPictureInPicture.requestWindow({width:320,height:440})
+        : window.open("", "chromeProfilePip", "popup,width=320,height=440");
+      if (!pipWindow) throw new Error("Profile window was blocked");
+      const dark = document.documentElement.dataset.theme === "dark";
+      pipWindow.document.title = "Chrome Profiles";
+      pipWindow.document.body.innerHTML = `
+        <style>
+          *{box-sizing:border-box} body{margin:0;padding:16px;background:${dark ? "#0E131A" : "#F1F3F6"};color:${dark ? "#F3F6F9" : "#161B22"};font-family:-apple-system,"Segoe UI",sans-serif}
+          h1{font-size:17px;margin:0 0 12px} input{width:100%;border:1px solid ${dark ? "#2B3541" : "#D6DCE3"};border-radius:9px;padding:10px 11px;background:${dark ? "#171D25" : "#fff"};color:inherit;font-size:14px;outline:none}
+          #list{display:grid;gap:7px;margin-top:12px}.profile{width:100%;text-align:left;border:1px solid ${dark ? "#2B3541" : "#D6DCE3"};border-radius:9px;padding:10px 12px;background:${dark ? "#171D25" : "#fff"};color:inherit;cursor:pointer;font-weight:650;font-size:13px}
+          .profile:hover{border-color:#4285F4}.profile[hidden]{display:none}#status{font-size:12px;color:${dark ? "#A7B1BE" : "#5B6572"};margin:10px 2px 0}
+        </style>
+        <h1>Chrome Profiles</h1>
+        <input id="profileSearch" type="search" placeholder="Search profiles…" autocomplete="off" autofocus>
+        <div id="list"></div><div id="status">${profiles.length} profile${profiles.length === 1 ? "" : "s"} found</div>`;
+      const list = pipWindow.document.getElementById("list");
+      const status = pipWindow.document.getElementById("status");
+      profiles.forEach(profile => {
+        const button = pipWindow.document.createElement("button");
+        button.className = "profile";
+        button.textContent = profile.name;
+        button.addEventListener("click", async () => {
+          status.textContent = `Opening ${profile.name}…`;
+          try {
+            const launch = await launchChromeProfile(profile);
+            status.textContent = launch.ok ? `Opened ${profile.name}` : `Could not open ${profile.name}`;
+          } catch { status.textContent = `Could not open ${profile.name}`; }
+        });
+        list.appendChild(button);
+      });
+      const search = pipWindow.document.getElementById("profileSearch");
+      search.addEventListener("input", () => {
+        const query = search.value.trim().toLowerCase();
+        let visible = 0;
+        list.querySelectorAll(".profile").forEach(button => {
+          const match = button.textContent.toLowerCase().includes(query);
+          button.hidden = !match;
+          if (match) visible++;
+        });
+        status.textContent = `${visible} profile${visible === 1 ? "" : "s"} found`;
+      });
+      search.focus();
+    } catch {
+      alert("Chrome profiles are unavailable. Make sure the local helper is running and allow the profile popup if Chrome asks.");
+    }
+  });
+}
+
+function paintClock(){
+  const now = new Date();
+  document.getElementById("clock").textContent =
+    now.toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"}) + " · " +
+    now.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit"});
+}
+paintClock();
+setInterval(paintClock, 30000);
+function paintNet(){
+  const on = navigator.onLine;
+  document.getElementById("netDot").classList.toggle("off", !on);
+  document.getElementById("netTxt").textContent = on ? "Online" : "Offline — app shell still works";
+}
+paintNet();
+window.addEventListener("online", paintNet);
+window.addEventListener("offline", paintNet);
+
+const filterInput = document.getElementById("filter");
+filterInput.addEventListener("input", () => {
+  const q = filterInput.value.trim().toLowerCase();
+  document.querySelectorAll(".card").forEach(c => {
+    const hit = !q || (c.dataset.k + " " + c.textContent).toLowerCase().includes(q);
+    c.classList.toggle("hidden", !hit);
+    if (hit && q && c.classList.contains("admin")) c.classList.add("open");
+  });
+  document.querySelectorAll(".group").forEach(g => {
+    const any = [...g.querySelectorAll(".card")].some(c => !c.classList.contains("hidden"));
+    g.style.display = any ? "" : "none";
+  });
+});
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+
+const searchFab = document.getElementById("searchFab");
+const searchPanel = document.getElementById("searchPanel");
+function openSearch(){
+  searchPanel.classList.add("open");
+  filterInput.focus();
+}
+function closeSearch(){
+  searchPanel.classList.remove("open");
+}
+searchFab.addEventListener("click", () => {
+  searchPanel.classList.contains("open") ? closeSearch() : openSearch();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeSearch();
+  if ((e.metaKey || e.ctrlKey) && e.key === "k") { e.preventDefault(); openSearch(); }
+});
+document.addEventListener("click", (e) => {
+  if (!searchPanel.contains(e.target) && e.target !== searchFab && !searchFab.contains(e.target)) {
+    closeSearch();
+  }
+});
+</script>
+</body>
+</html>
